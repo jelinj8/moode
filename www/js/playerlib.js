@@ -178,6 +178,8 @@ var alphabitsFilter;
 var lastYIQ = ''; // Last yiq value from setColors
 var coverView = false; // Coverview active or not to save on more expensive conditional in interval timer
 
+const escapeHTML = str => (str+'').replace(/[&<>"'`=\/]/g, s => ({'&': '&amp;','<': '&lt;','>': '&gt;','"': '&quot;',"'": '&#39;','/': '&#x2F;','`': '&#x60;','=': '&#x3D;'})[s]);
+
 function debugLog(msg) {
 	if (SESSION.json['debuglog'] == '1') {
 		console.log(Date.now() + ': ' + msg);
@@ -786,12 +788,12 @@ function renderUI() {
         if (MPD.json['artist'] == 'Radio station') {
             // Playback
             $('#currentalbum-div').hide();
-            $('#currentsong').html(genSearchUrl(MPD.json['artist'], MPD.json['title'], MPD.json['album']));
-            $('#currentartist').html(MPD.json['album']);
+            $('#currentsong').html(escapeHTML(genSearchUrl(MPD.json['artist']), escapeHTML(MPD.json['title']), escapeHTML(MPD.json['album'])));
+            $('#currentartist').html(escapeHTML(MPD.json['album']));
             // Playbar
             $('#playbar-currentalbum, #ss-currentalbum').html(MPD.json['file'].indexOf('somafm') != -1 ?
-                RADIO.json[MPD.json['file']]['name'] : MPD.json['album']);
-            $('#playbar-currentsong, #ss-currentsong').html(MPD.json['title']);
+                escapeHTML(RADIO.json[MPD.json['file']]['name']) : escapeHTML(MPD.json['album']));
+            $('#playbar-currentsong, #ss-currentsong').html(escapeHTML(MPD.json['title']));
         }
         // For albums
         // - #currentalbum = MPD.json['album']
@@ -800,13 +802,13 @@ function renderUI() {
         else {
             // Playback
             $('#currentalbum-div').show();
-            $('#currentalbum').html(MPD.json['album']);
-    		$('#currentsong').html(genSearchUrl(MPD.json['artist'] == 'Unknown artist' ? MPD.json['albumartist'] : MPD.json['artist'], MPD.json['title'], MPD.json['album']));
-            $('#currentartist').html((MPD.json['artist'] == 'Unknown artist' ? MPD.json['albumartist'] : MPD.json['artist']) + moreArtistsEllipsis);
+            $('#currentalbum').html(escapeHTML(MPD.json['album']));
+    		$('#currentsong').html(genSearchUrl(MPD.json['artist'] == 'Unknown artist' ? escapeHTML(MPD.json['albumartist']) : escapeHTML(MPD.json['artist']), escapeHTML(MPD.json['title']), escapeHTML(MPD.json['album'])));
+            $('#currentartist').html((MPD.json['artist'] == 'Unknown artist' ? escapeHTML(MPD.json['albumartist']) : escapeHTML(MPD.json['artist'])) + moreArtistsEllipsis);
             // Playbar
-            $('#playbar-currentsong, #ss-currentsong').html((MPD.json['artist'] == 'Unknown artist' ? MPD.json['albumartist'] :
-                MPD.json['artist']) + moreArtistsEllipsis + ' - ' + MPD.json['title']);
-            $('#playbar-currentalbum, #ss-currentalbum').html(MPD.json['album']);
+            $('#playbar-currentsong, #ss-currentsong').html((MPD.json['artist'] == 'Unknown artist' ? escapeHTML(MPD.json['albumartist']) :
+                escapeHTML(MPD.json['artist'])) + moreArtistsEllipsis + ' - ' + escapeHTML(MPD.json['title']));
+            $('#playbar-currentalbum, #ss-currentalbum').html(escapeHTML(MPD.json['album']));
         }
 
         // Show/hide HD badge
@@ -1090,10 +1092,10 @@ function renderPlaylist(state) {
 	                // Line 1 title
 					output += '<span class="pl-action" data-toggle="context" data-target="#context-menu-playlist-item">' + (typeof(data[i].Time) == 'undefined' ? '' : formatSongTime(data[i].Time)) + '<br><b>&hellip;</b></span>';
 	                output += '<span class="pll1">';
-                    output += data[i].Name + '</span>';
+                    output += escapeHTML(data[i].Name) + '</span>';
 					// Line 2 artist, album
 					output += '<span class="pll2">'; // for clock radio
-					output += (typeof(data[i].Artist) === 'undefined') ? 'Unknown artist' : data[i].Artist;
+					output += (typeof(data[i].Artist) === 'undefined') ? 'Unknown artist' : escapeHTML(data[i].Artist);
 					//output += ' - ';
 					//output += (typeof(data[i].Album) === 'undefined') ?  'Unknown album' : data[i].Album;
 				}
@@ -1112,17 +1114,17 @@ function renderPlaylist(state) {
                     // Standard title
 					else {
 						output += '<span class="pl-action" data-toggle="context" data-target="#context-menu-playlist-item">' + (typeof(data[i].Time) == 'undefined' ? '' : formatSongTime(data[i].Time)) + '<br><b>&hellip;</b></span>';
-						output += '<span class="pll1">' + data[i].Title + '</span>';
+						output += '<span class="pll1">' + escapeHTML(data[i].Title) + '</span>';
 						if (i == parseInt(MPD.json['song'])) { // active
 							// Update in case MPD did not get Title tag at initial play
 							if (data[i].Title.substr(0, 4) === 'http' || MPD.json['coverurl'] === UI.defCover || UI.mobile) {
-								$('#currentsong').html(data[i].Title);
+								$('#currentsong').html(escapeHTML(data[i].Title));
 							}
 							// Add search url, see corresponding code in renderUI()
 							else {
 								$('#currentsong').html(genSearchUrl(data[i].Artist, data[i].Title, data[i].Album));
 							}
-							$('#ss-currentsong, #playbar-currentsong').html(data[i].Title);
+							$('#ss-currentsong, #playbar-currentsong').html(escapeHTML(data[i].Title));
 						}
 					}
 
@@ -1134,7 +1136,7 @@ function renderPlaylist(state) {
 						var name = typeof(data[i].Name) === 'undefined' ? 'Radio station' : data[i].Name;
 						output += name;
 						if (i == parseInt(MPD.json['song'])) { // active
-							$('#playbar-currentalbum, #ss-currentalbum').html(name);
+							$('#playbar-currentalbum, #ss-currentalbum').html(escapeHTML(name));
 						}
 					}
 					else {
@@ -1303,7 +1305,7 @@ function renderFolderView(data, path, searchstr) {
 		var s = (data.length == 1) ? '' : 's';
 		var text = result + ' item' + s;
 		$('#db-search-results').show();
-		$('#db-search-results').html('<a href="#notarget" data-toggle="context" data-target="#context-menu-db-search-results">' + text +'</a>');
+		$('#db-search-results').html('<a href="#notarget" data-toggle="context" data-target="#context-menu-db-search-results">' + escapeHTML(text) +'</a>');
 	}
 
 	// Output the list
@@ -1313,13 +1315,13 @@ function renderFolderView(data, path, searchstr) {
 
 	for (i = 0; i < data.length; i++) {
 		if (data[i].file && data[i > 1 ? i - 1 : 0].Album != data[i].Album || data[i].file && i == 0 && data[i].Album) { // New album not playlist but ugh
-			output += '<li id="db-' + i + '" data-path="' + data[i].file.substr(0, data[i].file.lastIndexOf('/')) + '">'
+			output += '<li id="db-' + i + '" data-path="' + escapeHTML(data[i].file.substr(0, data[i].file.lastIndexOf('/'))) + '">'
 			output += '<div class="db-icon db-action">';
 			output += '<a class="btn" href="#notarget" data-toggle="context" data-target="#context-menu-folder">';
 		    output += '<img src="' + 'imagesw/thmcache/' + encodeURIComponent($.md5(data[i].file.substring(0,data[i].file.lastIndexOf('/')))) + '_sm.jpg' + '"></img></a></div>';
             // ORIG output += '<div class="db-entry db-album"><div>' + data[i].Artist + ' - ' + data[i].Album + '</div></div></li>'; // For onetouch search scripts-panels for .db-album
             output += '<div class="db-entry db-album" data-toggle="context" data-target="#context-menu-folder">'; // Lets try a context menu instead of onetouch
-            output += '<div>' + data[i].Album + '</div></div></li>';
+            output += '<div>' + escapeHTML(data[i].Album) + '</div></div></li>';
 		}
 
     	if (path == '' && typeof(data[i].file) != 'undefined') {
@@ -1337,7 +1339,7 @@ function renderFolderView(data, path, searchstr) {
     			output += '<div class="db-icon db-song db-action">'; // Hack to enable entire line click for context menu
     			output += '<a class="btn" href="#notarget" data-toggle="context" data-target="#context-menu-folder-item">';
                 output += data[i].Track + '</a></div>';
-    			output += '<div class="db-entry db-song" data-toggle="context" data-target="#context-menu-folder-item"><div>' + data[i].Title + ' <span class="songtime">' + data[i].TimeMMSS + '</span></div>';
+    			output += '<div class="db-entry db-song" data-toggle="context" data-target="#context-menu-folder-item"><div>' + escapeHTML(data[i].Title) + ' <span class="songtime">' + data[i].TimeMMSS + '</span></div>';
     		}
     		// Saved Playlist items
             // NOTE: File extensions are removed except for url's
